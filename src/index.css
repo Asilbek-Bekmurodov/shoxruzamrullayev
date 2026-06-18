@@ -1,16 +1,17 @@
 :root {
-  /* Counting-house / ledger reading-room palette */
-  --paper: #eef1e9;        /* cool, green-tinted ivory — the desk surface */
-  --sheet: #f8f9f4;        /* lighter card / sheet */
-  --ink: #15201a;          /* near-black green — primary text */
-  --ledger: #1f4a39;       /* deep ledger green — structure & primary action */
-  --ledger-deep: #163528;
-  --soft: #5d7166;         /* muted green-grey — secondary text */
-  --brass: #9a7330;        /* gilt accent, used sparingly */
-  --line: #d2d7c9;         /* hairline rules */
-  --line-strong: #b9c0ae;
+  /* Playful-editorial "about me" palette — indigo + ink on white */
+  --paper: #ffffff;        /* page background */
+  --sheet: #fbf9f4;        /* warm card / sheet surface */
+  --ink: #1d1e2b;          /* primary text */
+  --indigo: #2c2d6e;       /* the name colour — primary */
+  --indigo-deep: #1e1f50;
+  --soft: #6c6d7e;         /* muted secondary text */
+  --highlight: #ffe08a;    /* soft marker highlight, used sparingly */
+  --line: #e7e4dd;         /* hairline rules */
+  --line-strong: #cfccc3;
 
-  --display: 'Fraunces', Georgia, serif;
+  --display: 'Archivo', system-ui, sans-serif;
+  --script: 'Caveat', 'Comic Sans MS', cursive;
   --body: 'Hanken Grotesk', system-ui, sans-serif;
   --mono: 'IBM Plex Mono', ui-monospace, monospace;
 
