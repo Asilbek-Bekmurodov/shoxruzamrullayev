@@ -1,0 +1,58 @@
+:root {
+  /* Counting-house / ledger reading-room palette */
+  --paper: #eef1e9;        /* cool, green-tinted ivory — the desk surface */
+  --sheet: #f8f9f4;        /* lighter card / sheet */
+  --ink: #15201a;          /* near-black green — primary text */
+  --ledger: #1f4a39;       /* deep ledger green — structure & primary action */
+  --ledger-deep: #163528;
+  --soft: #5d7166;         /* muted green-grey — secondary text */
+  --brass: #9a7330;        /* gilt accent, used sparingly */
+  --line: #d2d7c9;         /* hairline rules */
+  --line-strong: #b9c0ae;
+
+  --display: 'Fraunces', Georgia, serif;
+  --body: 'Hanken Grotesk', system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  color-scheme: light;
+  font-family: var(--body);
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100svh;
+  background: var(--paper);
+}
+
+#root {
+  min-height: 100svh;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
