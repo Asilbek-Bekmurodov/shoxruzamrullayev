@@ -428,5 +428,45 @@ export default function App() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [isAdmin]);
 
+  // Secret entrance on phones: shake the device to jump to /admin.
+  useEffect(() => {
+    if (isAdmin) return;
+    let last = null;
+    let jolts = 0;
+    let resetTimer;
+
+    const onMotion = (e) => {
+      const a = e.accelerationIncludingGravity || e.acceleration;
+      if (!a || a.x == null) return;
+      const now = Date.now();
+      if (last && now - last.t < 120) return;
+      if (last) {
+        const speed = Math.hypot(a.x - last.x, a.y - last.y, a.z - last.z);
+        if (speed > 18) {
+          jolts += 1;
+          clearTimeout(resetTimer);
+          resetTimer = setTimeout(() => (jolts = 0), 1000);
+          if (jolts >= 3) window.location.assign("/admin");
+        }
+      }
+      last = { x: a.x, y: a.y, z: a.z, t: now };
+    };
+
+    // iOS 13+ needs permission, granted only from a user gesture (tap).
+    const enableMotion = () => {
+      const D = window.DeviceMotionEvent;
+      if (D && typeof D.requestPermission === "function") {
+        D.requestPermission().catch(() => {});
+      }
+    };
+    window.addEventListener("touchend", enableMotion, { once: true });
+    window.addEventListener("devicemotion", onMotion);
+    return () => {
+      window.removeEventListener("touchend", enableMotion);
+      window.removeEventListener("devicemotion", onMotion);
+      clearTimeout(resetTimer);
+    };
+  }, [isAdmin]);
+
   return isAdmin ? <Admin /> : <Catalog />;
 }
