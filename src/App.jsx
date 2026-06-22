@@ -409,5 +409,24 @@ export default function App() {
   // Tiny router: /admin gets the admin screen, everything else the catalog.
   const isAdmin =
     typeof window !== "undefined" && window.location.pathname === "/admin";
+
+  // Secret entrance: type "secret" anywhere to jump to /admin.
+  useEffect(() => {
+    if (isAdmin) return;
+    const CODE = "secret";
+    let buffer = "";
+    const onKeyDown = (e) => {
+      // Ignore typing inside inputs/textareas so forms still work.
+      const tag = e.target?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || e.target?.isContentEditable)
+        return;
+      if (e.key.length !== 1) return;
+      buffer = (buffer + e.key.toLowerCase()).slice(-CODE.length);
+      if (buffer === CODE) window.location.assign("/admin");
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isAdmin]);
+
   return isAdmin ? <Admin /> : <Catalog />;
 }
