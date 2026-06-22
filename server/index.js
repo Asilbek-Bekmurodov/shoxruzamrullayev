@@ -157,6 +157,7 @@ app.delete("/api/documents/:id", requireAuth, (req, res) => {
   res.json({ ok: true });
 });
 
-app.listen(PORT, () => {
-  console.log(`Document API listening on http://localhost:${PORT}`);
+// Bind to 0.0.0.0 so hosts like Render can detect the open port.
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Document API listening on port ${PORT}`);
 });
