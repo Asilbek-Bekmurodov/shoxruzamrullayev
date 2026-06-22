@@ -98,6 +98,22 @@ function Squiggle({ className }) {
 function Hero() {
   const textRef = useReveal();
   const photoRef = useReveal();
+
+  // Secret entrance: tap the portrait 5 times to jump to /admin.
+  const tapState = useRef({ count: 0, timer: null });
+  const onPhotoTap = () => {
+    const s = tapState.current;
+    s.count += 1;
+    if (navigator.vibrate) navigator.vibrate(40); // buzz per tap (Android)
+    clearTimeout(s.timer);
+    s.timer = setTimeout(() => (s.count = 0), 800);
+    if (s.count >= 5) {
+      s.count = 0;
+      if (navigator.vibrate) navigator.vibrate([60, 40, 120]); // unlock buzz
+      window.location.assign("/admin");
+    }
+  };
+
   return (
     <header className="hero">
       <div className="hero-text reveal" ref={textRef}>
@@ -149,7 +165,11 @@ function Hero() {
         <Arrow />
         <span className="photo-disc" aria-hidden="true" />
         <span className="photo-ring">
-          <img src={mePhoto} alt={`${PROFILE.name.join(" ")} portreti`} />
+          <img
+            src={mePhoto}
+            alt={`${PROFILE.name.join(" ")} portreti`}
+            onClick={onPhotoTap}
+          />
         </span>
         <Squiggle className="photo-squiggle" />
       </div>
