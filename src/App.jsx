@@ -355,19 +355,41 @@ function Row({ doc, onOpen }) {
   );
 }
 
-function Group({ group, docs, onOpen }) {
+function RowSkeleton() {
+  return (
+    <li className="row row-skeleton" aria-hidden="true">
+      <span className="sk sk-call" />
+      <span className="row-main">
+        <span className="sk sk-title" />
+        <span className="sk sk-course" />
+      </span>
+      <span className="row-tags">
+        <span className="sk sk-chip" />
+        <span className="sk sk-size" />
+      </span>
+      <span className="row-actions">
+        <span className="sk sk-btn" />
+        <span className="sk sk-btn" />
+      </span>
+    </li>
+  );
+}
+
+function Group({ group, docs, loading, onOpen }) {
   const ref = useReveal();
   return (
     <section className="group reveal" key={group.id} ref={ref}>
       <div className="group-head">
         <h3>{group.label}</h3>
         <span className="group-note">{group.note}</span>
-        <span className="group-count">{docs.length}</span>
+        <span className="group-count">{loading ? "·" : docs.length}</span>
       </div>
       <ul className="rows">
-        {docs.map((doc) => (
-          <Row key={doc.id} doc={doc} onOpen={onOpen} />
-        ))}
+        {loading
+          ? Array.from({ length: 3 }).map((_, i) => <RowSkeleton key={i} />)
+          : docs.map((doc) => (
+              <Row key={doc.id} doc={doc} onOpen={onOpen} />
+            ))}
       </ul>
     </section>
   );
@@ -376,13 +398,15 @@ function Group({ group, docs, onOpen }) {
 function Catalog() {
   const [active, setActive] = useState(null);
   const [docs, setDocs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const headRef = useReveal();
 
   useEffect(() => {
     listDocuments()
       .then(setDocs)
-      .catch(() => setLoadError(true));
+      .catch(() => setLoadError(true))
+      .finally(() => setLoading(false));
   }, []);
 
   return (
@@ -408,6 +432,7 @@ function Catalog() {
             key={group.id}
             group={group}
             docs={docs.filter((d) => d.group === group.id)}
+            loading={loading}
             onOpen={setActive}
           />
         ))}

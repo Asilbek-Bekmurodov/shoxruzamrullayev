@@ -307,6 +307,65 @@
   gap: 8px;
 }
 
+/* ---------- Loading skeleton ---------- */
+.row-skeleton .row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+.sk {
+  display: block;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--line) 70%, transparent) 25%,
+    color-mix(in srgb, var(--line) 30%, transparent) 37%,
+    color-mix(in srgb, var(--line) 70%, transparent) 63%
+  );
+  background-size: 400% 100%;
+  animation: sk-shimmer 1.4s ease infinite;
+}
+.sk-call {
+  width: 40px;
+  height: 13px;
+}
+.sk-title {
+  width: 62%;
+  height: 16px;
+}
+.sk-course {
+  width: 40%;
+  height: 12px;
+}
+.sk-chip {
+  width: 44px;
+  height: 20px;
+  border-radius: 999px;
+}
+.sk-size {
+  width: 36px;
+  height: 12px;
+}
+.sk-btn {
+  width: 76px;
+  height: 34px;
+  border-radius: 8px;
+}
+@keyframes sk-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sk {
+    animation: none;
+  }
+}
+
 /* ---------- Buttons ---------- */
 .btn {
   font-family: var(--body);
