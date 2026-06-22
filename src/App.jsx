@@ -1,6 +1,37 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import mePhoto from "./assets/me.jpeg";
+import Backdrop from "./Backdrop";
+import Admin from "./Admin";
+import { fileUrl, listDocuments } from "./api";
 import "./App.css";
+
+/* Adds an `is-in` class the first time the element scrolls into view, so CSS
+   can fade + rise it. Falls back to immediately visible without IO support. */
+function useReveal() {
+  const ref = useRef(null);
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    if (!("IntersectionObserver" in window)) {
+      node.classList.add("is-in");
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries, obs) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-in");
+            obs.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.15, rootMargin: "0px 0px -8% 0px" },
+    );
+    io.observe(node);
+    return () => io.disconnect();
+  }, []);
+  return ref;
+}
 
 // --- Edit your details here ---------------------------------------------
 const PROFILE = {
@@ -11,65 +42,6 @@ const PROFILE = {
   email: "amrullayev@gmail.com",
 };
 // ------------------------------------------------------------------------
-
-// The collection — derived from the files in /public/docs.
-// Two .pptx in the source folder were byte-identical, so the guide is listed once.
-const COLLECTION = [
-  {
-    call: "EC·01",
-    title: "Dinamik makroiqtisodiyot",
-    course: "Makroiqtisodiy jarayonlar va modellar",
-    file: "dinamik-makroiqtisodiyot.docx",
-    type: "docx",
-    size: "124 KB",
-    group: "lecture",
-  },
-  {
-    call: "EC·02",
-    title: "Innovatsion iqtisodiyot",
-    course: "Innovatsiya va texnologik rivojlanish",
-    file: "innovatsion-iqtisodiyot.docx",
-    type: "docx",
-    size: "54 KB",
-    group: "lecture",
-  },
-  {
-    call: "EC·03",
-    title: "Iqtisodiy o‘sish",
-    course: "O‘sish omillari va o‘lchovlari",
-    file: "iqtisodiy-osish.docx",
-    type: "docx",
-    size: "73 KB",
-    group: "lecture",
-  },
-  {
-    call: "EC·04",
-    title: "Iqtisodiy siyosatga kirish",
-    course: "Davlat siyosati asoslari",
-    file: "iqtisodiy-siyosatga-kirish.docx",
-    type: "docx",
-    size: "65 KB",
-    group: "lecture",
-  },
-  {
-    call: "EC·05",
-    title: "Raqamli iqtisodiyot",
-    course: "Raqamli transformatsiya va platformalar",
-    file: "raqamli-iqtisodiyot.docx",
-    type: "docx",
-    size: "71 KB",
-    group: "lecture",
-  },
-  {
-    call: "EC·06",
-    title: "Tadbirkorlik subyektlari uchun qo‘llanma",
-    course: "Amaliy taqdimot — qo‘llanma",
-    file: "tadbirkorlik-qollanma.pptx",
-    type: "pptx",
-    size: "1.8 MB",
-    group: "guide",
-  },
-];
 
 const GROUPS = [
   {
@@ -84,10 +56,6 @@ const GROUPS = [
   },
 ];
 
-function docPath(file) {
-  return `/docs/${encodeURIComponent(file)}`;
-}
-
 /* Hand-drawn arrow pointing from the intro toward the portrait. */
 function Arrow() {
   return (
@@ -98,6 +66,7 @@ function Arrow() {
         stroke="currentColor"
         strokeWidth="3"
         strokeLinecap="round"
+        pathLength="1"
       />
       <path
         d="M118 14 L 101 13 M118 14 L 110 29"
@@ -105,6 +74,7 @@ function Arrow() {
         stroke="currentColor"
         strokeWidth="3"
         strokeLinecap="round"
+        pathLength="1"
       />
     </svg>
   );
@@ -119,15 +89,18 @@ function Squiggle({ className }) {
         stroke="currentColor"
         strokeWidth="3"
         strokeLinecap="round"
+        pathLength="1"
       />
     </svg>
   );
 }
 
 function Hero() {
+  const textRef = useReveal();
+  const photoRef = useReveal();
   return (
     <header className="hero">
-      <div className="hero-text">
+      <div className="hero-text reveal" ref={textRef}>
         <p className="script-label">
           Men haqimda!
           <Squiggle className="label-squiggle" />
@@ -172,7 +145,7 @@ function Hero() {
         </div>
       </div>
 
-      <div className="hero-photo">
+      <div className="hero-photo reveal" ref={photoRef}>
         <Arrow />
         <span className="photo-disc" aria-hidden="true" />
         <span className="photo-ring">
@@ -196,7 +169,7 @@ function Reader({ doc, onClose }) {
     if (doc.type === "docx") {
       Promise.all([
         import("mammoth/mammoth.browser"),
-        fetch(docPath(doc.file)).then((r) => {
+        fetch(fileUrl(doc.url)).then((r) => {
           if (!r.ok) throw new Error("fetch failed");
           return r.arrayBuffer();
         }),
@@ -231,10 +204,7 @@ function Reader({ doc, onClose }) {
     };
   }, [onClose]);
 
-  const fullUrl =
-    typeof window !== "undefined"
-      ? window.location.origin + docPath(doc.file)
-      : docPath(doc.file);
+  const fullUrl = fileUrl(doc.url);
   const officeUrl =
     "https://view.officeapps.live.com/op/view.aspx?src=" +
     encodeURIComponent(fullUrl);
@@ -259,7 +229,7 @@ function Reader({ doc, onClose }) {
           <div className="reader-actions">
             <a
               className="btn btn-ghost"
-              href={docPath(doc.file)}
+              href={fileUrl(doc.url)}
               download={doc.file}
             >
               Yuklab olish
@@ -289,7 +259,7 @@ function Reader({ doc, onClose }) {
               <p>Hujjatni shu yerda ko‘rsatib bo‘lmadi.</p>
               <a
                 className="btn btn-solid"
-                href={docPath(doc.file)}
+                href={fileUrl(doc.url)}
                 download={doc.file}
               >
                 O‘rniga yuklab oling
@@ -307,7 +277,7 @@ function Reader({ doc, onClose }) {
                 <div className="reader-fallback-actions">
                   <a
                     className="btn btn-solid"
-                    href={docPath(doc.file)}
+                    href={fileUrl(doc.url)}
                     download={doc.file}
                   >
                     Yuklab olish
@@ -336,8 +306,9 @@ function Reader({ doc, onClose }) {
 }
 
 function Row({ doc, onOpen }) {
+  const ref = useReveal();
   return (
-    <li className="row">
+    <li className="row reveal" ref={ref}>
       <span className="row-call">{doc.call}</span>
       <button className="row-main" onClick={() => onOpen(doc)}>
         <span className="row-title">{doc.title}</span>
@@ -353,7 +324,7 @@ function Row({ doc, onOpen }) {
         </button>
         <a
           className="btn btn-solid"
-          href={docPath(doc.file)}
+          href={fileUrl(doc.url)}
           download={doc.file}
         >
           Yuklab olish
@@ -363,15 +334,43 @@ function Row({ doc, onOpen }) {
   );
 }
 
-export default function App() {
+function Group({ group, docs, onOpen }) {
+  const ref = useReveal();
+  return (
+    <section className="group reveal" key={group.id} ref={ref}>
+      <div className="group-head">
+        <h3>{group.label}</h3>
+        <span className="group-note">{group.note}</span>
+        <span className="group-count">{docs.length}</span>
+      </div>
+      <ul className="rows">
+        {docs.map((doc) => (
+          <Row key={doc.id} doc={doc} onOpen={onOpen} />
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function Catalog() {
   const [active, setActive] = useState(null);
+  const [docs, setDocs] = useState([]);
+  const [loadError, setLoadError] = useState(false);
+  const headRef = useReveal();
+
+  useEffect(() => {
+    listDocuments()
+      .then(setDocs)
+      .catch(() => setLoadError(true));
+  }, []);
 
   return (
     <div className="page">
+      <Backdrop />
       <Hero />
 
       <main className="catalog">
-        <div className="catalog-head">
+        <div className="catalog-head reveal" ref={headRef}>
           <span className="script-label small">Manbalar</span>
           <h2 className="catalog-title">Hujjatlar</h2>
           <p className="catalog-sub">
@@ -379,23 +378,18 @@ export default function App() {
           </p>
         </div>
 
-        {GROUPS.map((group) => {
-          const docs = COLLECTION.filter((d) => d.group === group.id);
-          return (
-            <section className="group" key={group.id}>
-              <div className="group-head">
-                <h3>{group.label}</h3>
-                <span className="group-note">{group.note}</span>
-                <span className="group-count">{docs.length}</span>
-              </div>
-              <ul className="rows">
-                {docs.map((doc) => (
-                  <Row key={doc.file} doc={doc} onOpen={setActive} />
-                ))}
-              </ul>
-            </section>
-          );
-        })}
+        {loadError && (
+          <p className="catalog-sub">Hujjatlarni yuklab bo‘lmadi — server ishlayotganiga ishonch hosil qiling.</p>
+        )}
+
+        {GROUPS.map((group) => (
+          <Group
+            key={group.id}
+            group={group}
+            docs={docs.filter((d) => d.group === group.id)}
+            onOpen={setActive}
+          />
+        ))}
       </main>
 
       <footer className="foot">
@@ -408,4 +402,11 @@ export default function App() {
       {active && <Reader doc={active} onClose={() => setActive(null)} />}
     </div>
   );
+}
+
+export default function App() {
+  // Tiny router: /admin gets the admin screen, everything else the catalog.
+  const isAdmin =
+    typeof window !== "undefined" && window.location.pathname === "/admin";
+  return isAdmin ? <Admin /> : <Catalog />;
 }
